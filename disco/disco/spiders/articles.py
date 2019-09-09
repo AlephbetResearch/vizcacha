@@ -22,7 +22,7 @@ class ArticlesSpider(scrapy.Spider):
     #   -H 'Content-Type: application/json; charset=utf-8'
     #   -H 'Cookie: ASP.NET_SessionId=td1shuuvsyclls45buyjhri5;
     def parse(self, response):
-    	# Get session id (cookie)
+        # Get session id (cookie)
         match = re.search('\w{16,}', response.headers['Set-Cookie'])
         self.sessionID = match.group(0)
 
@@ -56,7 +56,7 @@ class ArticlesSpider(scrapy.Spider):
             callback = self.parseMenu
         )
 
-    	pass
+        pass
 
 
     def parseMenu(self, response):

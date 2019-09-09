@@ -25,7 +25,7 @@ class ArticlesSpider(scrapy.Spider):
         category = category.extract_first()
 
         if (category):
-            str_match = re.search(u"Categoría", category)
+            str_match = re.search(u"CATEGORIA", category)
         
         # Si hay elemento categoría recorrer categorías
         if (category) and (str_match is not None):
@@ -47,23 +47,31 @@ class ArticlesSpider(scrapy.Spider):
         categories = []
 
         # 1st level category
-        xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
-            'div[@class="atg_store_refinementAncestorsLinkCategory"][2]/'
-            'a/text()')
-        categories += response.xpath(xpathQuery).extract()
-
-        # 2nd level category
-        xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
-            'div[@class="atg_store_refinementAncestorsLinkCategory"][3]/'
-            'a/text()')
-        categories += response.xpath(xpathQuery).extract()  
+        try:
+            xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
+                          'div[@class="atg_store_refinementAncestorsLinkCategory"][2]/'
+                          'a/text()')
+            categories += response.xpath(xpathQuery).extract()
+        except:
+            pass
         
+        # 2nd level category
+        try:
+            xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
+                          'div[@class="atg_store_refinementAncestorsLinkCategory"][3]/'
+                          'a/text()')
+            categories += response.xpath(xpathQuery).extract()  
+        except:
+            pass
         # 3rd level category
-        xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
-            'span[@class="atg_store_refinementAncestorsLastLinkSpan"]/text()')
-        categories += response.xpath(xpathQuery).extract()
-    
+        try:
+            xpathQuery = ('//div[@class="atg_store_refinementAncestorsLinks"]/'
+                          'span[@class="atg_store_refinementAncestorsLastLinkSpan"]/text()')
+            categories += response.xpath(xpathQuery).extract()
+        except:
+            pass
         # Articles
+        
         xpathQuery = '//ul[@id=\'products\']//li[starts-with(@class,"clearfix")]'
 
         for selector in response.xpath(xpathQuery):
@@ -87,20 +95,18 @@ class ArticlesSpider(scrapy.Spider):
         item['categories'] = categories
 
         # Nombre
-        xpathQuery = ('div/div/span[@class="atg_store_productTitle"]/div/'
-            'span[@class="span_productName"]/div/div[@class="descrip_full"]/text()')
+        #response.xpath('//ul[@id=\'products\']//li[starts-with(@class,"clearfix")]/div/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/div/span[@class="span_productName"]/div/div[@class="descrip_full"]/text()').extract()
+        xpathQuery = ('div/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/div/span[@class="span_productName"]/div/div[@class="descrip_full"]/text()')
 
         regex = '((?:(\w|\/|\.|\-|\:|\&)+\s{0,2})+)'
 
-        item['name'] = selector.xpath(xpathQuery).re(regex)
-        item['name'] = item['name'][0].strip()
-
+        try:
+            item['name'] = selector.xpath(xpathQuery).re(regex)
+            item['name'] = item['name'][0].strip()
+        except:
+            item['name'] = "No item name found"
         # Precio
-        xpathQuery = ('div[@class="rightList"]/'
-            'div[@class="atg_store_productAddToCart"]/'
-            'div[@class="info_discount"]/'
-            'span[@class="atg_store_productPrice"][1]/'
-            'span[@class="atg_store_newPrice"]/text()')
+        xpathQuery = ('div[@class="rightList fix_bottom"]/div[@class="atg_store_productAddToCart"]/div[@class="info_discount"]/span[@class="atg_store_productPrice"][1]/span[@class="atg_store_newPrice"]/text()')
 
         regex = '(\d+\.\d+)'
 
@@ -108,8 +114,7 @@ class ArticlesSpider(scrapy.Spider):
         item['price'] = item['price'][0].strip()
 
         # ID Coto (PLU)
-        xpathQuery = ('div/div/span[@class="atg_store_productTitle"]/'
-            'span[@class="span_codigoplu"]/text()')
+        xpathQuery = ('div[@class="leftList"]/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/span[@class="span_codigoplu"]/text()')
 
         regex = '(\d+)'
 
