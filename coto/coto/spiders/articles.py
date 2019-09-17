@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import scrapy
 import re # Regex library
 
 from coto.items import CotoArticle
+
 
 class ArticlesSpider(scrapy.Spider):
     name = "coto_articles"
@@ -93,12 +95,13 @@ class ArticlesSpider(scrapy.Spider):
         item = CotoArticle()
 
         item['categories'] = categories
-
+        item['timestamp'] = datetime.datetime.now().isoformat()
         # Nombre
         #response.xpath('//ul[@id=\'products\']//li[starts-with(@class,"clearfix")]/div/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/div/span[@class="span_productName"]/div/div[@class="descrip_full"]/text()').extract()
         xpathQuery = ('div/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/div/span[@class="span_productName"]/div/div[@class="descrip_full"]/text()')
 
         regex = '((?:(\w|\/|\.|\-|\:|\&)+\s{0,2})+)'
+
 
         try:
             item['name'] = selector.xpath(xpathQuery).re(regex)
@@ -109,18 +112,23 @@ class ArticlesSpider(scrapy.Spider):
         xpathQuery = ('div[@class="rightList fix_bottom"]/div[@class="atg_store_productAddToCart"]/div[@class="info_discount"]/span[@class="atg_store_productPrice"][1]/span[@class="atg_store_newPrice"]/text()')
 
         regex = '(\d+\.\d+)'
-
-        item['price'] = selector.xpath(xpathQuery).re(regex)
-        item['price'] = item['price'][0].strip()
-
+        
+        try:
+            item['price'] = selector.xpath(xpathQuery).re(regex)
+            item['price'] = item['price'][0].strip()
+        except:
+            pass
         # ID Coto (PLU)
         xpathQuery = ('div[@class="leftList"]/div[@class="product_info_container"]/a/span[@class="atg_store_productTitle"]/span[@class="span_codigoplu"]/text()')
 
         regex = '(\d+)'
 
-        item['internal_id'] = selector.xpath(xpathQuery).re(regex)
-        item['internal_id'] = item['internal_id'][0].strip()
-
+        try:
+            item['internal_id'] = selector.xpath(xpathQuery).re(regex)
+            item['internal_id'] = item['internal_id'][0].strip()
+        except:
+            pass
+            
         # Precio por unidad de medida
         xpathQuery = ('div/div/span[contains(@class, "unit")]/text()')
         unitPrice = selector.xpath(xpathQuery).extract()

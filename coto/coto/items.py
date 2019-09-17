@@ -7,7 +7,9 @@
 
 import scrapy
 
+
 class CotoArticle(scrapy.Item):
+    timestamp = scrapy.Field()
     internal_id = scrapy.Field()
     name = scrapy.Field()
     price = scrapy.Field()
